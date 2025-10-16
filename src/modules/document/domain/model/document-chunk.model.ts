@@ -2,6 +2,7 @@ export class DocumentChunk {
   id?: string;
   content: string;
   embedding: number[]; // Store as number array in domain
+  originalDocumentName: string;
   originalDocumentUrl: string;
   chunkNumber: number;
   createdAt?: Date;
@@ -9,6 +10,7 @@ export class DocumentChunk {
   constructor(
     content: string,
     embedding: number[],
+    originalDocumentName: string,
     originalDocumentUrl: string,
     chunkNumber: number,
     id?: string,
@@ -17,6 +19,7 @@ export class DocumentChunk {
     this.id = id;
     this.content = content;
     this.embedding = embedding;
+    this.originalDocumentName = originalDocumentName;
     this.originalDocumentUrl = originalDocumentUrl;
     this.chunkNumber = chunkNumber;
     this.createdAt = createdAt;

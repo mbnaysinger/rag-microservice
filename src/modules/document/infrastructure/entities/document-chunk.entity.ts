@@ -17,6 +17,9 @@ export class DocumentChunkEntity {
   embedding: string; // Armazena o vetor como JSON: '[0.1, 0.2, ...]'
 
   @Column()
+  originalDocumentName: string;
+
+  @Column()
   originalDocumentUrl: string;
 
   @Column('int')

@@ -34,6 +34,7 @@ export class DocumentOrchestratorService {
       return new DocumentChunk(
         chunk,
         embeddings[index], // Store as number array
+        blobName,
         fileUrl,
         index,
       );

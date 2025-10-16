@@ -8,6 +8,7 @@ export class DocumentChunkConverter {
       entity.content,
       JSON.parse(entity.embedding), // Convert JSON string back to number array
       entity.originalDocumentUrl,
+      entity.originalDocumentName,
       entity.chunkNumber,
       entity.id,
       entity.createdAt,
@@ -20,6 +21,7 @@ export class DocumentChunkConverter {
     entity.id = domain.id;
     entity.content = domain.content;
     entity.embedding = JSON.stringify(domain.embedding); // Convert number array to JSON string
+    entity.originalDocumentName = domain.originalDocumentName;
     entity.originalDocumentUrl = domain.originalDocumentUrl;
     entity.chunkNumber = domain.chunkNumber;
     entity.createdAt = domain.createdAt;
