@@ -50,8 +50,8 @@ async function bootstrap() {
 
   // Configuração do Swagger
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Hub IA - API')
-    .setDescription('API do Hub de IA da FIERGS')
+    .setTitle('Orquestrador de RAG')
+    .setDescription('API do Orquestrador de RAG')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

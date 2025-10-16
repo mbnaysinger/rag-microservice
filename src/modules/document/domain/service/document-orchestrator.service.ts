@@ -17,13 +17,13 @@ export class DocumentOrchestratorService {
 
   async processAndStoreDocument(file: Express.Multer.File): Promise<any> {
     // 1. Salva o arquivo original no Blob Storage
-    const blobName = `${Date.now()}-${file.originalname}`;
+    const blobName = `${file.originalname}`;
     const fileUrl = await this.documentStorageService.uploadFile(
       file,
       blobName,
     );
 
-    // 2. Processa e "chunkeia" o arquivo
+    // 2. Processa e realiza o "chunking" do arquivo
     const chunks = await this.fileProcessingService.processFile(file);
 
     // 3. Gera os embeddings para os chunks
