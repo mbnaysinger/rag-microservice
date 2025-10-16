@@ -6,7 +6,7 @@ export class DocumentChunkEntity {
   id: string;
 
   @Column('text')
-  chunkText: string;
+  content: string;
 
   @Column({ type: 'text', comment: 'Stores the vector as a JSON string' })
   embedding: string; // Armazena o vetor como JSON: '[0.1, 0.2, ...]'

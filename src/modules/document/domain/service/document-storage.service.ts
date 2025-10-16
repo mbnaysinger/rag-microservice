@@ -25,7 +25,7 @@ export class DocumentStorageService {
 
     const entities = chunks.map((chunk, index) => {
       const entity = new DocumentChunkEntity();
-      entity.chunkText = chunk;
+      entity.content = chunk;
       entity.embedding = JSON.stringify(embeddings[index]); // Serializa o vetor para JSON
       entity.originalDocumentUrl = originalDocumentUrl;
       entity.chunkNumber = index;

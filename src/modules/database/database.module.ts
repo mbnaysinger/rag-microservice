@@ -9,7 +9,7 @@ import { ConfigServerService } from '@modules/config/config.service';
       imports: [ConfigServerModule],
       inject: [ConfigServerService],
       useFactory: async (configService: ConfigServerService) => ({
-        type: 'mysql',
+        type: 'mysql' as const,
         host: configService.get('config.db.host'),
         port: configService.get('config.db.port'),
         username: configService.get('config.db.username'),
@@ -18,6 +18,9 @@ import { ConfigServerService } from '@modules/config/config.service';
         autoLoadEntities: true,
         synchronize: false, // Nunca use TRUE em produção!
         logging: false, // Defina como true para depurar queries SQL
+        ssl: {
+          rejectUnauthorized: false,
+        },
       }),
     }),
   ],

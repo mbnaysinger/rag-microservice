@@ -23,8 +23,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --passWithNoTests --config ./test/jest-e2e.json --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --passWithNoTests --config ./test/jest-e2e.json"
-  },
+    "test:e2e": "jest --passWithNoTests --config ./test/jest-e2e.json",
+      "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d ormconfig.ts",
+      "migration:generate": "npm run typeorm -- migration:generate -n",
+      "migration:create": "npm run typeorm -- migration:create -n",
+      "migration:run": "npm run typeorm -- migration:run",
+      "migration:revert": "npm run typeorm -- migration:revert"  },
   "dependencies": {
     "@azure/openai": "^2.0.0",
     "@azure/storage-blob": "^12.28.0",

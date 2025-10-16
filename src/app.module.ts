@@ -7,9 +7,7 @@ import { DatabaseModule } from './modules/database/database.module';
 import { HealthModule } from '@modules/health/health.module';
 import { HttpExceptionFilter } from '@modules/common/filters/http-exception.filter';
 import { APP_FILTER } from '@nestjs/core';
-import { PortalModule } from '@modules/portal/portal.module';
 import { RetryModule } from './modules/common/retry/retry.module';
-import { MetricsModule } from './modules/metrics/metrics.module';
 import { DocumentModule } from './modules/document/document.module';
 
 @Module({
@@ -26,9 +24,7 @@ import { DocumentModule } from './modules/document/document.module';
     AuthModule,
     DatabaseModule,
     HealthModule,
-    PortalModule,
     RetryModule,
-    MetricsModule,
     DocumentModule,
   ],
   providers: [
