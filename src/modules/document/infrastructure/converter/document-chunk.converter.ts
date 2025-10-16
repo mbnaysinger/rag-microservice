@@ -27,10 +27,10 @@ export class DocumentChunkConverter {
   }
 
   public static toDomainList(entities: DocumentChunkEntity[]): DocumentChunk[] {
-    return entities.map(entity => DocumentChunkConverter.toDomain(entity));
+    return entities.map((entity) => DocumentChunkConverter.toDomain(entity));
   }
 
   public static toEntityList(domains: DocumentChunk[]): DocumentChunkEntity[] {
-    return domains.map(domain => DocumentChunkConverter.toEntity(domain));
+    return domains.map((domain) => DocumentChunkConverter.toEntity(domain));
   }
 }

@@ -11,15 +11,28 @@ export class EmbeddingService implements IEmbeddingPort {
   private readonly apiVersion: string;
 
   constructor(private readonly configService: ConfigServerService) {
-    const embeddingEndpoint = this.configService.get('config.openai-embedding.endpoint');
-    const embeddingApiKey = this.configService.get('config.openai-embedding.api_key');
-    const deploymentName = this.configService.get('config.openai-embedding.deployment-name');
-    const apiVersion = this.configService.get('config.openai-embedding.api_version');
+    const embeddingEndpoint = this.configService.get(
+      'config.openai-embedding.endpoint',
+    );
+    const embeddingApiKey = this.configService.get(
+      'config.openai-embedding.api_key',
+    );
+    const deploymentName = this.configService.get(
+      'config.openai-embedding.deployment-name',
+    );
+    const apiVersion = this.configService.get(
+      'config.openai-embedding.api_version',
+    );
 
     this.deploymentName = deploymentName;
     this.apiVersion = apiVersion;
 
-    if (!embeddingEndpoint || !embeddingApiKey || !this.apiVersion || !this.deploymentName) {
+    if (
+      !embeddingEndpoint ||
+      !embeddingApiKey ||
+      !this.apiVersion ||
+      !this.deploymentName
+    ) {
       throw new Error('Azure OpenAI Embedding configuration is missing.');
     }
 

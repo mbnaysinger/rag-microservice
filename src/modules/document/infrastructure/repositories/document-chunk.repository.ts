@@ -15,7 +15,8 @@ export class DocumentChunkRepository implements IDocumentChunkRepositoryPort {
 
   async saveMany(documentChunks: DocumentChunk[]): Promise<DocumentChunk[]> {
     const entitiesToSave = DocumentChunkConverter.toEntityList(documentChunks);
-    const savedEntities = await this.documentChunkTypeOrmRepository.save(entitiesToSave);
+    const savedEntities =
+      await this.documentChunkTypeOrmRepository.save(entitiesToSave);
     return DocumentChunkConverter.toDomainList(savedEntities);
   }
 }
