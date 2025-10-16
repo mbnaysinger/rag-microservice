@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as pdfParse from 'pdf-parse';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { IFileProcessingPort } from '../port/file-processing.port';
 
 @Injectable()
-export class FileProcessingService {
+export class FileProcessingService implements IFileProcessingPort {
   private readonly logger = new Logger(FileProcessingService.name);
 
   private readonly textSplitter = new RecursiveCharacterTextSplitter({

@@ -2,8 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigServerService } from '@modules/config/config.service';
 import { BlobServiceClient, BlockBlobClient } from '@azure/storage-blob';
 
+import { IDocumentStoragePort } from '../../domain/port/document-storage.port';
+
 @Injectable()
-export class BlobStorageService {
+export class BlobStorageService implements IDocumentStoragePort {
   private readonly logger = new Logger(BlobStorageService.name);
   private readonly containerName: string;
   private readonly blobServiceClient: BlobServiceClient;

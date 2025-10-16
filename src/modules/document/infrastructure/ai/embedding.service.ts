@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigServerService } from '@modules/config/config.service';
 import { AzureOpenAI } from 'openai';
+import { IEmbeddingPort } from '../../domain/port/embedding.port';
 
 @Injectable()
-export class EmbeddingService {
+export class EmbeddingService implements IEmbeddingPort {
   private readonly logger = new Logger(EmbeddingService.name);
   private readonly client: AzureOpenAI;
   private readonly deploymentName: string;
