@@ -12,14 +12,8 @@ export class EmbeddingService {
   constructor(private readonly configService: ConfigServerService) {
     const embeddingEndpoint = this.configService.get('config.openai-embedding.endpoint');
     const embeddingApiKey = this.configService.get('config.openai-embedding.api_key');
-
-    // Extract apiVersion from the embeddingEndpoint URL
-    const url = new URL(embeddingEndpoint);
-    const apiVersion = url.searchParams.get('api-version');
-
-    // Extract deploymentName from the embeddingEndpoint URL path
-    const pathSegments = url.pathname.split('/');
-    const deploymentName = pathSegments[pathSegments.indexOf('deployments') + 1];
+    const deploymentName = this.configService.get('config.openai-embedding.deployment-name');
+    const apiVersion = this.configService.get('config.openai-embedding.api_version');
 
     this.deploymentName = deploymentName;
     this.apiVersion = apiVersion;
@@ -28,9 +22,13 @@ export class EmbeddingService {
       throw new Error('Azure OpenAI Embedding configuration is missing.');
     }
 
+    // Ensure the endpoint is just the base URL without path or query parameters
+    const url = new URL(embeddingEndpoint);
+    const baseEndpoint = `https://${url.hostname}`;
+
     this.client = new AzureOpenAI({
       apiKey: embeddingApiKey,
-      endpoint: `https://${url.hostname}`, // Base endpoint
+      endpoint: baseEndpoint,
       apiVersion: this.apiVersion,
     });
   }
@@ -51,7 +49,7 @@ export class EmbeddingService {
       // A API de embeddings do OpenAI já retorna os dados ordenados por índice.
       return result.data.map((data) => data.embedding);
     } catch (error) {
-      this.logger.error(`Failed to create embeddings: ${error.message}`);
+      this.logger.error(`Failed to create embeddings:`, error);
       throw new Error('Failed to create embeddings.');
     }
   }
