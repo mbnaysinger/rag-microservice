@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as pdfParse from 'pdf-parse';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { IFileProcessingPort } from '../port/file-processing.port';
+import { Express } from 'express';
 
 @Injectable()
 export class FileProcessingService implements IFileProcessingPort {
@@ -12,8 +13,13 @@ export class FileProcessingService implements IFileProcessingPort {
     chunkOverlap: 200,
   });
 
-  async processFile(file: Express.Multer.File): Promise<string[]> {
-    this.logger.log(`Processing file: ${file.originalname} (${file.mimetype})`);
+  async processFile(
+    file: Express.Multer.File,
+    documentId: string,
+  ): Promise<string[]> {
+    this.logger.log(
+      `Processing file: ${file.originalname} (${file.mimetype}) for document ${documentId}`,
+    );
 
     let text: string;
 
