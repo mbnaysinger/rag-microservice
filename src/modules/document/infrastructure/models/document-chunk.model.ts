@@ -9,6 +9,7 @@ export interface DocumentChunkModel {
   documentId: string;
   createdAt?: Date;
   updatedAt?: Date;
+  score?: number; // Vector search similarity score (added by MongoDB $vectorSearch)
 }
 
 export class DocumentChunkModelHelper {

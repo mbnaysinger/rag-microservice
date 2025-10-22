@@ -5,6 +5,7 @@ export class DocumentChunk {
   chunkNumber: number;
   createdAt?: Date;
   documentId: string; // Link to the parent document
+  score?: number; // Vector search similarity score
 
   constructor(
     content: string,
@@ -13,6 +14,7 @@ export class DocumentChunk {
     documentId: string,
     id?: string,
     createdAt?: Date,
+    score?: number,
   ) {
     this.id = id;
     this.content = content;
@@ -20,5 +22,6 @@ export class DocumentChunk {
     this.chunkNumber = chunkNumber;
     this.createdAt = createdAt;
     this.documentId = documentId;
+    this.score = score;
   }
 }

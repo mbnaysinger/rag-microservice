@@ -12,6 +12,7 @@ export class DocumentChunkConverter {
       model.documentId,
       model._id?.toString() || model.id,
       model.createdAt,
+      model.score, // Preserve vector search score
     );
   }
 
