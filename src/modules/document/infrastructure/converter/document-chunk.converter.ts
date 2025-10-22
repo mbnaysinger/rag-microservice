@@ -1,36 +1,44 @@
 import { DocumentChunk } from '../../domain/model/document-chunk.model';
-import { DocumentChunkEntity } from '../entities/document-chunk.entity';
+import { DocumentChunkModel } from '../models/document-chunk.model';
+import { ObjectId } from 'mongodb';
 
 export class DocumentChunkConverter {
-  public static toDomain(entity: DocumentChunkEntity): DocumentChunk {
-    if (!entity) return null;
+  public static toDomain(model: DocumentChunkModel): DocumentChunk {
+    if (!model) return null;
     return new DocumentChunk(
-      entity.content,
-      JSON.parse(entity.embedding), // Convert JSON string back to number array
-      entity.chunkNumber,
-      entity.documentId,
-      entity.id,
-      entity.createdAt,
+      model.content,
+      model.embedding, // Direct number array, no JSON parsing needed
+      model.chunkNumber,
+      model.documentId,
+      model._id?.toString() || model.id,
+      model.createdAt,
     );
   }
 
-  public static toEntity(domain: DocumentChunk): DocumentChunkEntity {
+  public static toModel(domain: DocumentChunk): DocumentChunkModel {
     if (!domain) return null;
-    const entity = new DocumentChunkEntity();
-    entity.id = domain.id;
-    entity.content = domain.content;
-    entity.embedding = JSON.stringify(domain.embedding); // Convert number array to JSON string
-    entity.chunkNumber = domain.chunkNumber;
-    entity.createdAt = domain.createdAt;
-    entity.documentId = domain.documentId;
-    return entity;
+    
+    const model: DocumentChunkModel = {
+      content: domain.content,
+      embedding: domain.embedding, // Direct number array for MongoDB vector search
+      chunkNumber: domain.chunkNumber,
+      documentId: domain.documentId,
+      createdAt: domain.createdAt || new Date(),
+      updatedAt: new Date(),
+    };
+
+    if (domain.id) {
+      model._id = new ObjectId(domain.id);
+    }
+
+    return model;
   }
 
-  public static toDomainList(entities: DocumentChunkEntity[]): DocumentChunk[] {
-    return entities.map((entity) => DocumentChunkConverter.toDomain(entity));
+  public static toDomainList(models: DocumentChunkModel[]): DocumentChunk[] {
+    return models.map((model) => DocumentChunkConverter.toDomain(model));
   }
 
-  public static toEntityList(domains: DocumentChunk[]): DocumentChunkEntity[] {
-    return domains.map((domain) => DocumentChunkConverter.toEntity(domain));
+  public static toModelList(domains: DocumentChunk[]): DocumentChunkModel[] {
+    return domains.map((domain) => DocumentChunkConverter.toModel(domain));
   }
 }

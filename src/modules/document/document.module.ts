@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { DocumentController } from './api/v1/rest/document.controller';
 import { ConfigServerModule } from '@modules/config/config.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DocumentChunkEntity } from './infrastructure/entities/document-chunk.entity';
-import { DocumentEntity } from './infrastructure/entities/document.entity';
+import { DatabaseModule } from '@modules/database/database.module';
 
 // Domain Services
 import { DocumentOrchestratorService } from './domain/service/document-orchestrator.service';
+import { VectorSearchService } from './domain/service/vector-search.service';
 
 // Ports
 import { IDocumentStoragePort } from './domain/port/document-storage.port';
@@ -25,11 +24,12 @@ import { DocumentRepository } from './infrastructure/repositories/document.repos
 @Module({
   imports: [
     ConfigServerModule,
-    TypeOrmModule.forFeature([DocumentChunkEntity, DocumentEntity]),
+    DatabaseModule,
   ],
   controllers: [DocumentController],
   providers: [
     DocumentOrchestratorService,
+    VectorSearchService,
     {
       provide: IDocumentStoragePort,
       useClass: BlobStorageService,
@@ -58,6 +58,7 @@ import { DocumentRepository } from './infrastructure/repositories/document.repos
     IDocumentChunkRepositoryPort,
     IDocumentRepositoryPort,
     DocumentOrchestratorService,
+    VectorSearchService,
   ],
 })
 export class DocumentModule {}

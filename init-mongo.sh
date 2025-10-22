@@ -38,4 +38,49 @@ else
 fi
 fi
 
+# Create application database and collections
+echo "Creating application database..."
+mongosh --eval "
+const appDb = db.getSiblingDB('rag_microservice');
+try {
+  // Create collections with validation
+  appDb.createCollection('documents', {
+    validator: {
+      \$jsonSchema: {
+        bsonType: 'object',
+        required: ['fileName', 'fileSize', 'storagePath', 'processingStatus'],
+        properties: {
+          fileName: { bsonType: 'string' },
+          fileSize: { bsonType: 'number' },
+          storagePath: { bsonType: 'string' },
+          processingStatus: { enum: ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED'] },
+          uploadDate: { bsonType: 'date' },
+          processedDate: { bsonType: 'date' }
+        }
+      }
+    }
+  });
+  
+  appDb.createCollection('document_chunks', {
+    validator: {
+      \$jsonSchema: {
+        bsonType: 'object',
+        required: ['content', 'chunkNumber', 'documentId'],
+        properties: {
+          content: { bsonType: 'string' },
+          chunkNumber: { bsonType: 'number' },
+          documentId: { bsonType: 'objectId' },
+          embedding: { bsonType: 'array' },
+          createdAt: { bsonType: 'date' }
+        }
+      }
+    }
+  });
+  
+  print('Application database and collections created successfully');
+} catch (error) {
+  print('Error creating application database: ' + error);
+}
+"
+
 echo "MongoDB initialization completed."

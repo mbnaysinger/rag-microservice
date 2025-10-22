@@ -1,61 +1,87 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
-import { DocumentChunkEntity } from '../entities/document-chunk.entity';
+import { Collection, ObjectId } from 'mongodb';
 import { IDocumentChunkRepositoryPort } from '../../domain/port/document-chunk-repository.port';
 import { DocumentChunk } from '../../domain/model/document-chunk.model';
 import { DocumentChunkConverter } from '../converter/document-chunk.converter';
+import { DocumentChunkModel, DocumentChunkModelHelper } from '../models/document-chunk.model';
+import { MongoDBConnectionService } from '../../../database/mongodb-connection.service';
 
 @Injectable()
 export class DocumentChunkRepository implements IDocumentChunkRepositoryPort {
+  private collection: Collection<DocumentChunkModel>;
+
   constructor(
-    @InjectRepository(DocumentChunkEntity)
-    private readonly documentChunkTypeOrmRepository: Repository<DocumentChunkEntity>,
-    private readonly entityManager: EntityManager,
-  ) {}
-
-  async saveMany(documentChunks: DocumentChunk[]): Promise<DocumentChunk[]> {
-  const entitiesToSave = DocumentChunkConverter.toEntityList(documentChunks);
-
-  if (entitiesToSave.length === 0) {
-    return [];
+    private readonly mongoService: MongoDBConnectionService,
+  ) {
+    this.collection = this.mongoService.getCollection<DocumentChunkModel>(
+      DocumentChunkModelHelper.getCollectionName()
+    );
   }
 
-  // 1. Inicie uma transação
-  await this.entityManager.transaction(
-    async (transactionalEntityManager) => {
-      // 2. Itere sobre cada entidade e insira UMA de cada vez
-      for (const entity of entitiesToSave) {
-        
-        // 3. Use o QueryBuilder do 'transactionalEntityManager'
-        await transactionalEntityManager
-          .createQueryBuilder()
-          .insert()
-          .into(DocumentChunkEntity)
-          .values({
-            // 4. Mapeie os campos manualmente
-            id: entity.id,
-            content: entity.content,
-            chunkNumber: entity.chunkNumber,
-            createdAt: entity.createdAt,
-            documentId: entity.documentId,
-            
-            // 5. Use a sintaxe de função com .setParameter()
-            //    (Mais limpa e segura para inserts únicos)
-            embedding: () => `string_to_vector(:embeddingString)`,
-          })
-          .setParameter('embeddingString', entity.embedding) // <-- Passe a string JSON
-          .execute();
+  async saveMany(documentChunks: DocumentChunk[]): Promise<DocumentChunk[]> {
+    const modelsToSave = DocumentChunkConverter.toModelList(documentChunks);
+
+    if (modelsToSave.length === 0) {
+      return [];
+    }
+
+    // Use MongoDB's insertMany for bulk operations
+    const result = await this.collection.insertMany(modelsToSave);
+    
+    // Fetch the saved documents
+    const savedModels = await this.collection
+      .find({ _id: { $in: Object.values(result.insertedIds) } })
+      .toArray();
+
+    return DocumentChunkConverter.toDomainList(savedModels);
+  }
+
+  async findByDocumentId(documentId: string): Promise<DocumentChunk[]> {
+    const models = await this.collection
+      .find({ documentId })
+      .sort({ chunkNumber: 1 })
+      .toArray();
+    
+    return DocumentChunkConverter.toDomainList(models);
+  }
+
+  async findSimilarChunks(
+    embedding: number[], 
+    limit: number = 10,
+    documentId?: string
+  ): Promise<DocumentChunk[]> {
+    // MongoDB Vector Search using $vectorSearch aggregation
+    const pipeline: any[] = [
+      {
+        $vectorSearch: {
+          index: 'vector_index',
+          path: 'embedding',
+          queryVector: embedding,
+          numCandidates: limit * 10, // Search more candidates for better results
+          limit: limit,
+        }
       }
-    },
-  );
+    ];
 
-  // 6. Após a transação, busque as entidades salvas
-  const savedIds = entitiesToSave.map((e) => e.id);
-  const savedEntities = await this.documentChunkTypeOrmRepository.findByIds(
-    savedIds,
-  );
+    // Add document filter if specified
+    if (documentId) {
+      pipeline.push({
+        $match: { documentId }
+      });
+    }
 
-  return DocumentChunkConverter.toDomainList(savedEntities);
-}
+    // Add score to results
+    pipeline.push({
+      $addFields: {
+        score: { $meta: 'vectorSearchScore' }
+      }
+    });
+
+    const models = await this.collection.aggregate(pipeline).toArray() as DocumentChunkModel[];
+    return DocumentChunkConverter.toDomainList(models);
+  }
+
+  async deleteByDocumentId(documentId: string): Promise<void> {
+    await this.collection.deleteMany({ documentId });
+  }
 }
