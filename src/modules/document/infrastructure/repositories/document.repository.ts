@@ -8,14 +8,19 @@ import { MongoDBConnectionService } from '../../../database/mongodb-connection.s
 
 @Injectable()
 export class DocumentRepository implements IDocumentRepositoryPort {
-  private collection: Collection<DocumentModel>;
+  private _collection: Collection<DocumentModel>;
 
   constructor(
     private readonly mongoService: MongoDBConnectionService,
-  ) {
-    this.collection = this.mongoService.getCollection<DocumentModel>(
-      DocumentModelHelper.getCollectionName()
-    );
+  ) {}
+
+  private get collection(): Collection<DocumentModel> {
+    if (!this._collection) {
+      this._collection = this.mongoService.getCollection<DocumentModel>(
+        DocumentModelHelper.getCollectionName()
+      );
+    }
+    return this._collection;
   }
 
   async save(document: Document): Promise<Document> {

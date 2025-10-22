@@ -13,7 +13,6 @@ export class MongoDBConnectionService implements OnModuleInit, OnModuleDestroy {
   async onModuleInit(): Promise<void> {
     try {
       const uri = this.configService.get('config.db.uri');
-      const dbName = this.configService.get('config.db.name') || 'rag_microservice';
       
       this.logger.log(`Connecting to MongoDB at: ${uri}`);
       
@@ -24,7 +23,7 @@ export class MongoDBConnectionService implements OnModuleInit, OnModuleDestroy {
       });
 
       await this.client.connect();
-      this.database = this.client.db(dbName);
+      this.database = this.client.db();
       
       this.logger.log('Successfully connected to MongoDB');
     } catch (error) {
@@ -77,18 +76,19 @@ export class MongoDBConnectionService implements OnModuleInit, OnModuleDestroy {
         await db.collection('document_chunks').createSearchIndex({
           name: 'vector_index',
           definition: {
-            fields: [
-              {
-                type: 'vector',
-                path: 'embedding',
-                numDimensions: 1536, // OpenAI ada-002 embedding dimension
-                similarity: 'cosine'
-              },
-              {
-                type: 'filter',
-                path: 'documentId'
+            mappings: {
+              dynamic: false,
+              fields: {
+                embedding: {
+                  type: 'knnVector',
+                  dimensions: 3072, // Updated for newer embedding models
+                  similarity: 'cosine'
+                },
+                documentId: {
+                  type: 'string'
+                }
               }
-            ]
+            }
           }
         });
         this.logger.log('Vector search index created successfully');

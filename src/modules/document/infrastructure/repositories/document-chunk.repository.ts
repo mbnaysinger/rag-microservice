@@ -8,14 +8,19 @@ import { MongoDBConnectionService } from '../../../database/mongodb-connection.s
 
 @Injectable()
 export class DocumentChunkRepository implements IDocumentChunkRepositoryPort {
-  private collection: Collection<DocumentChunkModel>;
+  private _collection: Collection<DocumentChunkModel>;
 
   constructor(
     private readonly mongoService: MongoDBConnectionService,
-  ) {
-    this.collection = this.mongoService.getCollection<DocumentChunkModel>(
-      DocumentChunkModelHelper.getCollectionName()
-    );
+  ) {}
+
+  private get collection(): Collection<DocumentChunkModel> {
+    if (!this._collection) {
+      this._collection = this.mongoService.getCollection<DocumentChunkModel>(
+        DocumentChunkModelHelper.getCollectionName()
+      );
+    }
+    return this._collection;
   }
 
   async saveMany(documentChunks: DocumentChunk[]): Promise<DocumentChunk[]> {
