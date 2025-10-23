@@ -10,7 +10,7 @@ export interface SearchResult {
 
 @Injectable()
 export class VectorSearchService {
-  private readonly SIMILARITY_THRESHOLD = 0.6; // Minimum similarity score to consider relevant
+  private readonly SIMILARITY_THRESHOLD = 0.65; // Minimum similarity score to consider relevant
 
   constructor(
     private readonly documentChunkRepository: IDocumentChunkRepositoryPort,
