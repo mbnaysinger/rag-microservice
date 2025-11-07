@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as yaml from 'yaml';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { Logger } from 'winston'; // Importe createLogger
+import { Logger } from 'pino'; // Importe createLogger
 import { LoggerFactory } from '@modules/common/utils/logger.factory';
 
 /**
@@ -163,8 +163,8 @@ export class ConfigServerService {
         );
       } catch (error) {
         this.logger.error(
-          'Failed to load configurations from .env.yml file: ',
-          error.message,
+          { err: error },
+          'Failed to load configurations from .env.yml file',
         );
         throw new Error(
           'Não foi possível carregar configurações do arquivo .env.yml',
@@ -186,8 +186,8 @@ export class ConfigServerService {
         );
       } catch (error) {
         this.logger.error(
-          'Failed to load configurations from Config Server:',
-          error.message,
+          { err: error },
+          'Failed to load configurations from Config Server',
         );
         throw new Error(
           'Não foi possível carregar configurações do Config Server',

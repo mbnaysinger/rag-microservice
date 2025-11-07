@@ -7,7 +7,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { Logger } from 'winston';
+import { Logger } from 'pino';
 import * as moment from 'moment-timezone';
 
 @Catch(HttpException)
@@ -77,12 +77,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Log apenas para erros 5xx (evita poluição do log com erros 4xx, como Forbidden)
     if (status >= 500) {
       if (validationErrors) {
-        this.logger.error(
-          `Validation Error: ${JSON.stringify(validationErrors)}`,
-        );
-        this.logger.error(`Request body: ${JSON.stringify(request.body)}`);
+        this.logger.error({ validationErrors }, 'Validation Error');
+        this.logger.error({ body: request.body }, 'Request body');
       } else {
-        this.logger.error(`Error: ${message}`, exception);
+        this.logger.error({ err: exception }, `Error: ${message}`);
       }
     }
 

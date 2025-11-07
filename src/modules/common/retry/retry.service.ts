@@ -45,9 +45,7 @@ export class RetryService {
         return result;
       } catch (error) {
         lastError = error;
-        this.logger.warn(
-          `Attempt ${attempt}/${maxAttempts} failed: ${error.message}`,
-        );
+        this.logger.warn({ err: error }, `Attempt ${attempt}/${maxAttempts} failed`);
 
         if (onRetry) {
           onRetry(attempt, error);
@@ -55,9 +53,7 @@ export class RetryService {
 
         // Se é a última tentativa, não faz delay e lança o erro
         if (attempt === maxAttempts) {
-          this.logger.error(
-            `All ${maxAttempts} attempts failed. Last error: ${error.message}`,
-          );
+          this.logger.error({ err: error }, `All ${maxAttempts} attempts failed.`);
           throw error;
         }
 

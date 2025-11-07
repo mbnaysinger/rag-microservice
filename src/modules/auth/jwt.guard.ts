@@ -1,7 +1,7 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { LoggerFactory } from '@modules/common/utils/logger.factory';
-import { Logger } from 'winston';
+import { Logger } from 'pino';
 import { from, Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Retry } from '@retry/retry.decorator';
@@ -66,7 +66,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
               throw err; // Permite que o @Retry tente novamente
             }
 
-            this.logger.warn('Invalid token provided', err);
+            this.logger.warn({ err }, 'Invalid token provided');
             return from([true]); // Permite requisição como anônimo
           }),
         )

@@ -9,6 +9,7 @@ import { HttpExceptionFilter } from '@modules/common/filters/http-exception.filt
 import { APP_FILTER } from '@nestjs/core';
 import { RetryModule } from './modules/common/retry/retry.module';
 import { DocumentModule } from './modules/document/document.module';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
@@ -19,6 +20,19 @@ import { DocumentModule } from './modules/document/document.module';
           : process.env.NODE_ENV === 'k8s'
             ? '.env.k8s'
             : '',
+    }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.NODE_ENV === 'test' ? 'debug' : 'info',
+        autoLogging: true,
+        transport:
+          process.env.NODE_ENV === 'local' || process.env.NODE_ENV === 'development'
+            ? {
+                target: 'pino-pretty',
+                options: { colorize: true },
+              }
+            : undefined,
+      },
     }),
     ConfigServerModule,
     AuthModule,

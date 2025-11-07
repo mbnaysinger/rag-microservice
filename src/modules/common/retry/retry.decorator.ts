@@ -35,14 +35,10 @@ export function Retry(maxAttempts: number = 3, baseDelayMs: number = 1000) {
           return result;
         } catch (error) {
           lastError = error;
-          logger.warn(
-            `Attempt ${attempt}/${maxAttempts} failed for ${propertyName}: ${error.message}`,
-          );
+          logger.warn({ err: error }, `Attempt ${attempt}/${maxAttempts} failed for ${propertyName}`);
 
           if (attempt === maxAttempts) {
-            logger.error(
-              `All ${maxAttempts} attempts failed for ${propertyName}. Last error: ${error.message}`,
-            );
+            logger.error({ err: error }, `All ${maxAttempts} attempts failed for ${propertyName}.`);
             throw error;
           }
 
