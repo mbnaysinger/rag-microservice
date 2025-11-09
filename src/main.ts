@@ -8,14 +8,12 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { TransformInterceptor } from '@modules/common/interceptors/transform.interceptor';
-import { LoggerFactory } from '@modules/common/utils/logger.factory';
+import { logger } from '@azure/storage-blob';
 
 async function bootstrap() {
   const start = process.hrtime();
 
   const app = await NestFactory.create(AppModule);
-
-  const logger = LoggerFactory.getLogger('Bootstrap');
 
   const configService = app.get(ConfigServerService);
 

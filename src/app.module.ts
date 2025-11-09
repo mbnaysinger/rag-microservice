@@ -1,14 +1,12 @@
 // src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './modules/auth/auth.module';
 import { ConfigServerModule } from './modules/config/config.module';
 import { DatabaseModule } from './modules/database/database.module';
 import { HealthModule } from '@modules/health/health.module';
 import { HttpExceptionFilter } from '@modules/common/filters/http-exception.filter';
 import { APP_FILTER } from '@nestjs/core';
 import { RetryModule } from './modules/common/retry/retry.module';
-import { DocumentModule } from './modules/document/document.module';
 import { LoggerModule } from 'nestjs-pino';
 
 @Module({
@@ -35,11 +33,9 @@ import { LoggerModule } from 'nestjs-pino';
       },
     }),
     ConfigServerModule,
-    AuthModule,
     DatabaseModule,
     HealthModule,
     RetryModule,
-    DocumentModule,
   ],
   providers: [
     {
