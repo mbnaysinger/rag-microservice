@@ -1,6 +1,6 @@
 import { Module, Logger } from '@nestjs/common';
-import { ConfigServerService } from '@shared/config/config.service';
-import { ConfigServerModule } from '@shared/config/config.module';
+import { ConfigServerService } from '@modules/config/config.service';
+import { ConfigServerModule } from '@modules/config/config.module';
 import { VECTOR_REPOSITORY } from './domain/ports/vector-repository.port';
 import { PostgresVectorRepository } from './infrastructure/adapters/postgres.vector-repository.adapter';
 import { VectorDocumentService } from './domain/services/vector-document.service';

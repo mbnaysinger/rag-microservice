@@ -1,7 +1,7 @@
 // src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ConfigServerModule } from '@shared/config/config.module';
+import { ConfigServerModule } from '@modules/config/config.module';
 import { HealthModule } from '@modules/health/health.module';
 import { HttpExceptionFilter } from '@modules/common/filters/http-exception.filter';
 import { APP_FILTER } from '@nestjs/core';

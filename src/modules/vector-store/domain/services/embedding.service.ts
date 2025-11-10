@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { OpenAIClient, AzureKeyCredential } from '@azure/openai';
-import { ConfigServerService } from '@shared/config/config.service';
+import { ConfigServerService } from '@modules/config/config.service';
 
 @Injectable()
 export class EmbeddingService implements OnModuleInit {
