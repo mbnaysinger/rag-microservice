@@ -1,21 +1,311 @@
-Neste projeto atual, quero simuluar um microsserviço para gerenciar bancos de dados vetoriais (seja onpremise ou cloud);
-atualmente estou testando 4 opções, Mysql IA 9.4, PostgreSQL com pgvector, MongoDB com vector search e MariaDB com suporte a bancos vetoriais...
-todos no formado onpremise.
-Sendo assim, quero algo bem desenvolvido, distribuido e em padrão clean code.
-para a parte de logs, quero usar o pino.
-quero uma arquitetura hexagonal bem definida, com a cadama de API, DOMÍNIO e INFRAESTRUTA.
-Sendo a camada de api com o rest, dtos e converters... camada de domínio com models, service e ports... camada de infraestrutar com adapter, repositories, entities e conveters... 
-traga as melhores práticas de codificação e distribuição de módulos, neste primeiro momento não precisa se preocupar com autenticação.
-neste projeto, observabilidade é a chave, pensem logs e implementações que facilitem futuras capturas por grafana loki ou apps correlatos...
-utilize padrões de nomenclatura e nomes de variáveis em inglês...
-estruture um readme bem explicativo e com on board amigável para novos desenvolvedores.
-lembre de trabalhar por etapas, crie um TODO para que vá validando cada etapa a ser desenvolvida....
-por favor, atente-se para:
-- Todos os bancos tem suporte a tipagem VECTOR(n), estou usando atualmente 3072 pois é o formato que o text-embedding-003 da openia utiliza hoje...
-mas preciso que garanta que os binários vector salvos tenham realmente o conteúdo dos chunks extraídos...
-para a parte dos chunks, para leitura dos documentos, utilizei na implementação inicial o langchain, veja se é a melhor opção de mercado ou se existem
-outras implementações melhores para extração dos chunks...
-lembre-se, clareza e responsabilidade única são chave desse projeto, bem como uma camada de persistência bem abstraída para lidar com os bancos relacionais ou não relacionais.
-validar qual melhor formato de trabalho, se mesclar typeORM com MongoDB ou utilizar libs tipo prisma para lidar com múltiplos bancos...
-documente bem cada passo, para que seja um produto de fácil entendimento.
-aproveite ao máximo a estrutura existente, mas exclua ou modifique o que julgar necessário.
+Microsserviço vector-store-gateway
+
+1. Objetivo Principal
+Construir um microsserviço de alta performance, focado em observabilidade e abstração, para atuar como um gateway de gerenciamento para múltiplos bancos de dados vetoriais.
+
+O sistema deve ser desacoplado e seguir os princípios do Clean Code e Arquitetura Hexagonal.
+
+2. Escopo de Persistência (On-Premise)
+O microsserviço deve ser capaz de se conectar e operar com qualquer um dos seguintes bancos de dados, tratando-os como "plugins" intercambiáveis:
+
+PostgreSQL (com extensão pgvector)
+
+MongoDB (com Vector Search)
+
+MySQL (v9.4+ com suporte a IA)
+
+MariaDB (com suporte vetorial)
+
+3. Arquitetura Central: Hexagonal (Ports & Adapters)
+A estrutura do projeto será estritamente dividida para garantir isolamento e testabilidade.
+
+1-api (Camada de Framework):
+
+Responsável pela exposição (ex: REST).
+
+Contém: Controllers, DTOs (Data Transfer Objects) e Converters (para/de modelos de domínio).
+
+2-domain (Camada de Domínio/Aplicação):
+
+Core Lógico: Contém a lógica de negócios pura, sem dependências de frameworks ou infra.
+
+Contém:
+
+models: Entidades de negócio (ex: VectorDocument).
+
+services: Orquestradores de casos de uso (ex: VectorDocumentService).
+
+ports: A chave da abstração. Interfaces (ex: IVectorRepository, IEmbeddingService) que definem os "contratos" que a infraestrutura deve cumprir.
+
+3-infrastructure (Camada de Adapters):
+
+Implementação Concreta: Contém o código que "conecta" o domínio ao mundo real.
+
+Contém:
+
+adapters: As implementações das portas (ex: PostgresVectorRepository, MongoVectorRepository).
+
+repositories: Lógica de acesso direto ao banco.
+
+entities: Modelos de dados específicos do banco (ex: MongoDocumentSchema).
+
+4. Decisão Crítica: A Camada de Persistência Abstraída
+A abstração da persistência não será feita por um ORM (como Prisma ou TypeORM), pois eles não abstraem operações vetoriais nativas (<=>, $vectorSearch, etc.).
+
+A abstração será a Porta (IVectorRepository) definida no Domínio.
+
+Os Adapters na camada de infraestrutura implementarão essa porta usando os drivers nativos de cada banco (pg + pgvector, mongodb, mysql2, etc.) para garantir o uso total e otimizado das funções vetoriais específicas de cada um.
+
+5. Logging e Observabilidade
+Logging: A biblioteca padrão do projeto será o Pino.
+
+Formato: Todos os logs devem ser estruturados (JSON) para consumo direto por ferramentas como Grafana Loki.
+
+Contexto: Os logs devem ser enriquecidos (ex: traceId, adapter_em_uso) para facilitar o rastreamento em um ambiente distribuído.
+
+6. Requisitos de Negócio (Embeddings & Chunking)
+Chunking (Ingestão): Utilizar a biblioteca LangChain para as funcionalidades de DocumentLoaders (ex: PDFLoader) e TextSplitters (RecursiveCharacterTextSplitter), garantindo a melhor extração de chunks semânticos.
+
+Vetorização (Dimensão): O sistema deve ser configurado para o padrão VECTOR(3072), correspondente ao text-embedding-003 da OpenAI.
+
+Integridade: O fluxo de serviço deve garantir atomicamente que o vector salvo no banco de dados corresponde 100% ao chunk.pageContent do qual foi gerado.
+
+7. Entregáveis e Padrões
+Padrões: Todo o código-fonte (nomes de variáveis, funções, classes) deve ser escrito em inglês.
+
+README: O projeto deve conter um README.md detalhado, com foco em um onboard amigável para novos desenvolvedores (setup, variáveis de ambiente, como rodar os bancos com Docker, etc.).
+
+Plano de Ação: O desenvolvimento deve seguir um TODO claro (conforme estrutura sugerida anteriormente), validando cada etapa da implementação, desde as fundações até os adapters específicos.
+
+arquitetura modelo a ser seguida:
+
+vector-store-gateway/
+├── src/
+│   ├── modules/
+│   │   ├── vector-store/
+│   │   │   ├── 1-api/                 # (Framework Layer - HTTP)
+│   │   │   │   ├── vector-store.controller.ts
+│   │   │   │   ├── dtos/
+│   │   │   │   │   ├── create-document.dto.ts
+│   │   │   │   │   └── similarity-search.dto.ts
+│   │   │   │   └── converters/
+│   │   │   │       └── vector-store.converter.ts
+│   │   │   │
+│   │   │   ├── 2-domain/              # (Application/Domain Layer)
+│   │   │   │   ├── models/
+│   │   │   │   │   ├── vector-document.model.ts
+│   │   │   │   │
+│   │   │   │   ├── services/
+│   │   │   │   │   ├── vector-document.service.ts  # (Application Service)
+│   │   │   │   │   ├── document-loader.service.ts  # (Chunking c/ LangChain)
+│   │   │   │   │   └── embedding.service.ts        # (Chama OpenAI)
+│   │   │   │   │
+│   │   │   │   └── ports/                   # <--- A CHAVE DA ABSTRAÇÃO
+│   │   │   │       └── vector-repository.port.ts
+│   │   │   │
+│   │   │   └── 3-infrastructure/        # (Adapter Layer)
+│   │   │       ├── adapters/              # <--- MÚLTIPLAS IMPLEMENTAÇÕES
+│   │   │       │   ├── postgres.vector-repository.adapter.ts
+│   │   │       │   ├── mongodb.vector-repository.adapter.ts
+│   │   │       │   ├── mysql.vector-repository.adapter.ts
+│   │   │       │   └── mariadb.vector-repository.adapter.ts
+│   │   │       │
+│   │   │       ├── repositories/          # (Implementação Concreta)
+│   │   │       │   └── vector.repository.ts # (Injeta o adapter correto)
+│   │   │       │
+│   │   │       ├── entities/
+│   │   │       │   ├── postgres.vector.entity.ts # (Tipos do driver)
+│   │   │       │   └── mongo.vector.entity.ts
+│   │   │       │
+│   │   │       └── converters/
+│   │   │           └── vector-entity.converter.ts
+│   │   │
+│   │   │   └── vector-store.module.ts     # (Injeção de dependência)
+│   │
+│   ├── shared/
+│   │   ├── config/                      # (Gestão de .env)
+│   │   └── logger/                      # (Configuração do Pino)
+│
+├── package.json
+├── tsconfig.json
+├── .env.example
+└── README.md
+
+lembre que uso .env.yml no projeto, que é injetado ./src/modules/config/
+isso é importante, pois é ideial manter esse padrão de injeção, pois abstrai a complexidade de ficar injetando as dependências
+em todos os pontos necessários do projeto.
+
+veja também se a abordagem do /src/modules/database/ está ok ou se é melhor tratar de outra forma...
+
+exmeplo de adapter para postgre:
+
+// Exemplo com node-postgres (pg) e pgvector
+import { Client } from 'pg';
+import { IVectorRepository, SimilaritySearchResult }
+  from '../../2-domain/ports/vector-repository.port';
+import { VectorDocument } from '../../2-domain/models/vector-document.model';
+import { Logger } from 'pino'; // Injete o Pino
+
+// É crucial instalar a extensão 'pgvector' no seu driver
+import 'pgvector/pg';
+
+export class PostgresVectorRepository implements IVectorRepository {
+  private client: Client;
+  private logger: Logger;
+
+  // Injeção de Dependência (Logger e Config)
+  constructor(config: any, logger: Logger) {
+    this.client = new Client(config.database.postgres);
+    this.logger = logger.child({ adapter: 'PostgresVectorRepository' });
+  }
+
+  async setupInfrastructure(): Promise<void> {
+    this.logger.info('Setting up Postgres infrastructure...');
+    await this.client.connect();
+    await this.client.query('CREATE EXTENSION IF NOT EXISTS vector');
+    await this.client.query(`
+      CREATE TABLE IF NOT EXISTS documents (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        content TEXT,
+        metadata JSONB,
+        embedding VECTOR(3072) -- O seu requisito
+      )
+    `);
+    // Exemplo de índice (HNSW é geralmente melhor para performance)
+    await this.client.query(`
+      CREATE INDEX IF NOT EXISTS ON documents
+      USING ivfflat (embedding vector_l2_ops) WITH (lists = 100)
+    `);
+    this.logger.info('Postgres infrastructure ready.');
+  }
+
+  async save(document: VectorDocument): Promise<void> {
+    this.logger.debug({ docId: document.id }, 'Saving document to Postgres');
+    const query = `
+      INSERT INTO documents (id, content, metadata, embedding)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (id) DO UPDATE
+      SET content = $2, metadata = $3, embedding = $4
+    `;
+    // O driver 'pgvector/pg' converte o array JS para o formato do PG
+    await this.client.query(query, [
+      document.id,
+      document.content,
+      document.metadata,
+      document.embedding, // Passa o array [0.1, 0.2, ...]
+    ]);
+  }
+
+  async similaritySearch(embedding: number[], topK: number): Promise<SimilaritySearchResult[]> {
+    this.logger.debug({ topK }, 'Performing similarity search in Postgres');
+    const query = `
+      SELECT
+        id,
+        content,
+        metadata,
+        1 - (embedding <=> $1) AS similarity_score -- Ex: Cosseno
+      FROM documents
+      ORDER BY embedding <=> $1
+      LIMIT $2
+    `;
+    // O driver 'pgvector/pg' converte o array de busca
+    const result = await this.client.query(query, [embedding, topK]);
+
+    return result.rows.map(row => ({
+      document: {
+        id: row.id,
+        content: row.content,
+        metadata: row.metadata,
+        embedding: [], // Não retorne o vetor completo
+      },
+      score: row.similarity_score,
+    }));
+  }
+}
+
+exemplo de service chunk:
+
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { Document } from "@langchain/core/documents";
+
+export class DocumentLoaderService {
+  // ...
+  async loadAndSplit(filePath: string): Promise<Document[]> {
+    // 1. Loader (Exemplo com PDF)
+    const loader = new PDFLoader(filePath);
+    const rawDocs = await loader.load();
+
+    // 2. Splitter
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 1000,
+      chunkOverlap: 200,
+    });
+
+    const chunks = await splitter.splitDocuments(rawDocs);
+    return chunks;
+  }
+}
+
+exemplo de todo a seguir:
+
+🛠️ TODO - Plano de Desenvolvimento
+Este é o backlog de implementação para validar o projeto.
+
+Etapa 1: Fundações e Domínio
+[ ] Definir a estrutura de pastas (Hexagonal).
+
+[ ] Configurar o pino-http no entrypoint da API (ex: main.ts).
+
+[ ] Definir os modelos do Domínio (vector-document.model.ts).
+
+[ ] Definir a Porta de Repositório (vector-repository.port.ts).
+
+[ ] Criar os DTOs e Converters da camada de API (create-document.dto.ts).
+
+Etapa 2: Serviços de Domínio (Core Logic)
+[ ] Implementar EmbeddingService (wrapper do cliente OpenAI text-embedding-3-large).
+
+[ ] Implementar DocumentLoaderService (wrapper do LangChain PDFLoader e RecursiveCharacterTextSplitter).
+
+[ ] Implementar VectorDocumentService (orquestrador que usa os serviços acima e a porta do repositório).
+
+Etapa 3: Infraestrutura (Adapters) - Adapter 1: Postgres + pgvector
+[ ] Adicionar driver pg e pgvector.
+
+[ ] Implementar PostgresVectorRepository (Adapter) que implementa IVectorRepository.
+
+[ ] Implementar setupInfrastructure() (criar tabela, extensão e índice IVFFlat/HNSW).
+
+[ ] Implementar save() (com INSERT ... ON CONFLICT).
+
+[ ] Implementar similaritySearch() (com ORDER BY embedding <=> $1).
+
+[ ] Configurar injeção de dependência para carregar este adapter se DATABASE_ADAPTER=postgres.
+
+Etapa 4: Infraestrutura (Adapters) - Adapter 2: MongoDB Vector Search
+[ ] Adicionar driver mongodb.
+
+[ ] Implementar MongoVectorRepository (Adapter).
+
+[ ] Implementar setupInfrastructure() (criar collection e índice vetorial $searchIndex).
+
+[ ] Implementar save() (com updateOne e upsert: true).
+
+[ ] Implementar similaritySearch() (com pipeline de agregação $vectorSearch).
+
+[ ] Atualizar injeção de dependência para carregar este adapter se DATABASE_ADAPTER=mongo.
+
+Etapa 5: API e Testes
+[ ] Implementar o VectorStoreController (endpoints REST).
+
+[ ] Conectar o Controller ao VectorDocumentService.
+
+[ ] Testar o fluxo E2E: (Upload de PDF -> Chunk -> Embed -> Save -> Search).
+
+[ ] Validar logs no console (formato JSON do Pino) para Grafana Loki.
+
+Etapa 6: (Opcional) Adapters Adicionais
+[ ] Implementar MySQLVectorRepository.
+
+[ ] Implementar MariaDBVectorRepository.
